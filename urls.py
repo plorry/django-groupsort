@@ -5,4 +5,5 @@ urlpatterns = patterns('',
     url(r'^namelist/(?P<namelist_id>\d+)$', 'groupsort.views.home_view', name="home"),
     url(r'^namelist/(?P<namelist_id>\d+)/(?P<person_id>\d+)$', 'groupsort.views.home_view', name="home"),
     url(r'^namelist/(?P<namelist_id>\d+)/sort/(?P<num_groups>\d+)$', 'groupsort.views.groups_view', name="groups"),
+    url(r'^person/save$', 'groupsort.views.save_person', name='save_person'),
 )

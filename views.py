@@ -3,6 +3,8 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.db.models import Q
+from django.contrib.auth.decorators import login_required
+import json
 
 def home_view(request, namelist_id=None, person_id=None):
     template_name = "groupsort/home.html"
@@ -27,10 +29,23 @@ def home_view(request, namelist_id=None, person_id=None):
         dict,
         context)
         
-def save(request):
-    get = request.GET.copy()
-    
-        
+def save_person(request):
+    get = request.POST.copy()
+    name = get['name']
+    namelist_id = get['namelist_id']
+    namelist = NameList.objects.get(id=namelist_id)
+    this_person = Person.objects.create(name=name, namelist=namelist)
+    d = { 'name':this_person.name, 'name_id':this_person.id }
+    for person in namelist.people.all():
+        if person != this_person:
+            pairing = Pairing.objects.filter(people__id=person.id)
+            if pairing.count() == 0:
+                pairing = Pairing.objects.create(namelist=namelist)
+                pairing.people.add(this_person)
+                pairing.people.add(person)
+                pairing.save()
+    return HttpResponse(json.dumps(d))
+
 def groups_view(request, namelist_id, num_groups):
     template_name = "groupsort/groups_view.html"
     dict = {}
@@ -62,18 +77,20 @@ def groupsort(namelist, num_groups):
     groups = []
     for i in range(num_groups):
         groups.append([])
-    print len(groups)
     people = Person.objects.filter(namelist=namelist).order_by('?')
-    for person in people:
-        pairings = Pairing.objects.filter(people__id=person.id)
-        for person_2 in people:
-            if person_2 != person:
-                pairing = pairings.filter(people__id=person_2.id)
-                if pairing.count() == 0:
-                    pairing = Pairing.objects.create(namelist=namelist)
-                    pairing.people.add(person)
-                    pairing.people.add(person_2)
-                    pairing.save()
+    namelist_pairings = Pairing.objects.filter(namelist=namelist)
+    should_be = (people.count() * (people.count() + 1)) / 2
+    if namelist_pairings.count() < should_be:
+        for person in people:
+            pairings = namelist_pairings.filter(people__id=person.id)
+            for person_2 in people:
+                if person_2 != person:
+                    pairing = pairings.filter(people__id=person_2.id)
+                    if pairing.count() == 0:
+                        pairing = Pairing.objects.create(namelist=namelist)
+                        pairing.people.add(person)
+                        pairing.people.add(person_2)
+                        pairing.save()
     all_pairings = Pairing.objects.filter(namelist=namelist).order_by('count')
     group_num = 0
     remaining_people = people
