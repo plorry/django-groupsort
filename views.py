@@ -31,7 +31,7 @@ def home_view(request, namelist_id=None, person_id=None):
         
 def save_person(request):
     get = request.POST.copy()
-    name = get['name']
+    name = get['new_name']
     namelist_id = get['namelist_id']
     namelist = NameList.objects.get(id=namelist_id)
     this_person = Person.objects.create(name=name, namelist=namelist)
@@ -44,7 +44,10 @@ def save_person(request):
                 pairing.people.add(this_person)
                 pairing.people.add(person)
                 pairing.save()
-    return HttpResponse(json.dumps(d))
+    if request.is_ajax():
+        return HttpResponse(json.dumps(d))
+    else:
+        return HttpResponseRedirect('/groupsort/namelist/' + namelist_id)
 
 def groups_view(request, namelist_id, num_groups):
     template_name = "groupsort/groups_view.html"
