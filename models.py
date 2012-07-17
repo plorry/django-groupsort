@@ -9,7 +9,7 @@ class NameList(models.Model):
     
 class Person(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    namelist = models.ForeignKey(NameList)
+    namelist = models.ForeignKey(NameList, related_name='people')
     forbidden_pairings = models.ManyToManyField("self")
     
     def __unicode__(self):
@@ -19,9 +19,10 @@ class Pairing(models.Model):
     people = models.ManyToManyField(Person, related_name='pairings')
     count = models.IntegerField(default=0)
     last_pairing = models.DateTimeField(auto_now=True)
+    namelist = models.ForeignKey(NameList, related_name='pairings')
     
     def __unicode__(self):
-        return ', '.join([person.name for person in self.people])
+        return ', '.join([person.name for person in self.people.all()])
         
 class Groups(models.Model):
     namelist = models.ForeignKey(NameList)
