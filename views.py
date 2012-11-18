@@ -104,13 +104,13 @@ def groupsort(namelist, num_groups):
         if len(groups[group_num]) == 0 and not next_person:
             person = remaining_people[0]
             highest_pair = Pairing.objects.filter(people__id=person.id).order_by('-count')[0]
-            for a_person in highest_pair.people:
+            for a_person in highest_pair.people.all():
                 if a_person != person:
                     next_person = a_person
         elif len(groups[group_num]) == 0 and next_person:
             person = next_person
             highest_pair = Pairing.objects.filter(people__id=person.id).order_by('-count')[0]
-            for a_person in highest_pair.people:
+            for a_person in highest_pair.people.all():
                 if a_person != person:
                     next_person = a_person
         else:
