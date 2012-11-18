@@ -98,10 +98,21 @@ def groupsort(namelist, num_groups):
     group_num = 0
     remaining_people = people
     #Sort algorithm
+    next_person = None
     while remaining_people.count() != 0:
         group = groups[group_num]
-        if len(groups[group_num]) == 0:
+        if len(groups[group_num]) == 0 and not next_person:
             person = remaining_people[0]
+            highest_pair = Pairings.objects.filter(people__id=person.id).order_by('-count')[0]
+            for a_person in highest_pair:
+                if a_person != person:
+                    next_person = a_person
+        elif len(groups[group_num]) == 0 and next_person:
+            person = next_person
+            highest_pair = Pairings.objects.filter(people__id=person.id).order_by('-count')[0]
+            for a_person in highest_pair:
+                if a_person != person:
+                    next_person = a_person
         else:
             lowest_tally = False
             for person_1 in remaining_people:
